@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat</title>
+    <style>
+        :root {
+            --background-light: #ffffff;
+            --text-light: #000000;
+            --sidebar-light: #f7f7f8;
+            --chat-user-light: #d1d5db;
+            --chat-ai-light: #f7f7f8;
+            --input-border-light: #e5e7eb;
+
+            --background-dark: #343541;
+            --text-dark: #ffffff;
+            --sidebar-dark: #202123;
+            --chat-user-dark: #444654;
+            --chat-ai-dark: #343541;
+            --input-border-dark: #565869;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            height: 100%;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            background-color: var(--background-light);
+            color: var(--text-light);
+        }
+
+        body.dark-mode {
+            background-color: var(--background-dark);
+            color: var(--text-dark);
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        #main-interface {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100%;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        #main-interface h1 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        #question-input {
+            width: 100%;
+            max-width: 600px;
+            padding: 1rem;
+            font-size: 1rem;
+            border: 1px solid var(--input-border-light);
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .dark-mode #question-input {
+            background-color: var(--background-dark);
+            color: var(--text-dark);
+            border-color: var(--input-border-dark);
+        }
+
+        #chat-interface {
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        #chat-sidebar {
+            width: 260px;
+            background-color: var(--sidebar-light);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s;
+        }
+
+        .dark-mode #chat-sidebar {
+            background-color: var(--sidebar-dark);
+        }
+
+        #chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .message {
+            max-width: 80%;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .user-message {
+            background-color: var(--chat-user-light);
+            align-self: flex-end;
+            margin-left: auto;
+        }
+
+        .ai-message {
+            background-color: var(--chat-ai-light);
+            align-self: flex-start;
+        }
+
+        .dark-mode .user-message {
+            background-color: var(--chat-user-dark);
+        }
+
+        .dark-mode .ai-message {
+            background-color: var(--chat-ai-dark);
+        }
+
+        #chat-input-container {
+            padding: 1rem 2rem;
+            background-color: var(--background-light);
+            transition: background-color 0.3s;
+        }
+
+        .dark-mode #chat-input-container {
+            background-color: var(--background-dark);
+        }
+
+        #chat-form {
+            display: flex;
+            max-width: 768px;
+            margin: 0 auto;
+        }
+
+        #chat-input {
+            flex: 1;
+            padding: 0.75rem;
+            font-size: 1rem;
+            border: 1px solid var(--input-border-light);
+            border-radius: 0.5rem;
+            background-color: var(--background-light);
+            color: var(--text-light);
+            transition: border-color 0.3s, background-color 0.3s, color 0.3s;
+        }
+
+        .dark-mode #chat-input {
+            border-color: var(--input-border-dark);
+            background-color: var(--background-dark);
+            color: var(--text-dark);
+        }
+
+        #send-button {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            background-color: #10a37f;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            margin-left: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #send-button:hover {
+            background-color: #1a7f64;
+        }
+
+        .sidebar-button {
+            display: block;
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background-color: transparent;
+            border: 1px solid var(--input-border-light);
+            border-radius: 0.5rem;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .dark-mode .sidebar-button {
+            border-color: var(--input-border-dark);
+            color: var(--text-dark);
+        }
+
+        .sidebar-button:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .dark-mode .sidebar-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        #toggle-theme-main {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            background-color: #10a37f;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #toggle-theme-main:hover {
+            background-color: #1a7f64;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            #chat-sidebar {
+                width: 100%;
+                order: 2;
+            }
+
+            #chat-main {
+                order: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="main-interface">
+        <button id="toggle-theme-main" style="background-color: grey;">Cambiar Tema</button>
+        <h1>¿Cómo puedo ayudarte?</h1>
+        <input type="text" id="question-input" placeholder="Escribe tu pregunta">
+    </div>
+
+    <div id="chat-interface" class="container">
+        <div id="chat-sidebar">
+            <button id="clear-chat" class="sidebar-button" style="background-color: grey; color: #ffffff;">Limpiar Chat</button>
+            <button id="toggle-theme" class="sidebar-button" style="background-color: grey; color: #ffffff;">Cambiar Tema</button>
+        </div>
+        <div id="chat-main">
+            <div id="chat-messages"></div>
+            <div id="chat-input-container">
+                <form id="chat-form">
+                    <input type="text" id="chat-input" placeholder="Enviar un mensaje...">
+                    <button type="submit" id="send-button" style="background-color: grey; color: #ffffff;" >Enviar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mainInterface = document.getElementById('main-interface');
+            const chatInterface = document.getElementById('chat-interface');
+            const questionInput = document.getElementById('question-input');
+            const chatMessages = document.getElementById('chat-messages');
+            const chatForm = document.getElementById('chat-form');
+            const chatInput = document.getElementById('chat-input');
+            const clearChatButton = document.getElementById('clear-chat');
+            const toggleThemeButton = document.getElementById('toggle-theme');
+            const toggleThemeMainButton = document.getElementById('toggle-theme-main');
+
+            let conversationHistory = "This is a conversation between User and Llama, a friendly chatbot. Llama is helpful, kind, honest, good at writing, and never fails to answer any requests immediately and with precision.\n\n";
+
+            function switchToChat(initialQuestion) {
+                mainInterface.style.display = 'none';
+                chatInterface.style.display = 'flex';
+                handleChatInput(initialQuestion);
+            }
+
+            function switchToMain() {
+                chatInterface.style.display = 'none';
+                mainInterface.style.display = 'flex';
+                questionInput.value = '';
+            }
+
+            function addMessage(text, className) {
+                const messageElement = document.createElement('div');
+                messageElement.textContent = text;
+                messageElement.classList.add('message', className);
+                chatMessages.appendChild(messageElement);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            function handleMainInput(question) {
+                if (question.trim() !== '') {
+                    switchToChat(question);
+                }
+            }
+
+            async function handleChatInput(message) {
+                if (message.trim() !== '') {
+                    addMessage(message, 'user-message');
+                    conversationHistory += `User: ${message}\nLlama:`;
+
+                    try {
+                        const response = await fetch('http://localhost:8070/completion', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                stream: true,
+                                n_predict: 400,
+                                temperature: 0.7,
+                                stop: ["</s>", "Llama:", "User:"],
+                                repeat_last_n: 256,
+                                repeat_penalty: 1.18,
+                                penalize_nl: false,
+                                top_k: 40,
+                                top_p: 0.95,
+                                min_p: 0.05,
+                                tfs_z: 1,
+                                typical_p: 1,
+                                presence_penalty: 0,
+                                frequency_penalty: 0,
+                                mirostat: 0,
+                                mirostat_tau: 5,
+                                mirostat_eta: 0.1,
+                                grammar: "",
+                                n_probs: 0,
+                                min_keep: 0,
+                                image_data: [],
+                                cache_prompt: true,
+                                api_key: "",
+                                slot_id: -1,
+                                prompt: conversationHistory
+                            })
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
+                        await handleStreamResponse(response);
+
+                    } catch (error) {
+                        console.error('Error:', error);
+                        addMessage('Lo siento, ha ocurrido un error al procesar tu mensaje.', 'ai-message');
+                    }
+                }
+            }
+
+            async function handleStreamResponse(response) {
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let assistantResponse = '';
+                let buffer = '';
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        if (line.trim().startsWith('data:')) {
+                            try {
+                                const jsonData = JSON.parse(line.slice(5));
+                                if (jsonData.content) {
+                                    assistantResponse += jsonData.content;
+                                    updateAssistantMessage(assistantResponse);
+                                }
+                            } catch (e) {
+                                console.error('Error parsing JSON:', e, line);
+                            }
+                        }
+                    }
+                }
+
+                if (buffer) {
+                    try {
+                        const jsonData = JSON.parse(buffer.slice(5));
+                        if (jsonData.content) {
+                            assistantResponse += jsonData.content;
+                            updateAssistantMessage(assistantResponse);
+                        }
+                    } catch (e) {
+                        console.error('Error parsing JSON:', e, buffer);
+                    }
+                }
+
+                conversationHistory += `${assistantResponse}\n`;
+            }
+
+            function updateAssistantMessage(content) {
+                let assistantMessage = chatMessages.querySelector('.ai-message:last-child');
+                if (!assistantMessage) {
+                    assistantMessage = document.createElement('div');
+                    assistantMessage.className = 'message ai-message';
+                    chatMessages.appendChild(assistantMessage);
+                }
+                assistantMessage.textContent = content;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            questionInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleMainInput(this.value);
+                }
+            });
+
+            chatForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleChatInput(chatInput.value);
+                chatInput.value = '';
+            });
+
+            clearChatButton.addEventListener('click', function() {
+                chatMessages.innerHTML = '';
+                conversationHistory = "This is a conversation between User and Llama, a friendly chatbot. Llama is helpful, kind, honest, good at writing, and never fails to answer any requests immediately and with precision.\n\n";
+                switchToMain();
+            });
+
+            function toggleDarkMode() {
+                document.body.classList.toggle('dark-mode');
+            }
+
+            toggleThemeButton.addEventListener('click', toggleDarkMode);
+            toggleThemeMainButton.addEventListener('click', toggleDarkMode);
+
+            addMessage("¡Hola! Soy tu asistente AI. ¿En qué puedo ayudarte hoy?", 'ai-message');
+        });
+    </script>
+</body>
+</html>
